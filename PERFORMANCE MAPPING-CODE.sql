@@ -1,0 +1,174 @@
+
+-- CREATION DATABASE OF EMPLOYEE( TASK 1)
+CREATE DATABASE Employee;
+   
+   USE EMPLOYEE;
+   
+-- CREATION OF ER DIAGRAM (TASK 2)
+   -- SAVED AS PDF
+
+-- (TASK 3)
+
+SELECT EMP_ID, FIRST_NAME, LAST_NAME, GENDER, DEPT FROM emp_RECORD_TABLE
+ORDER BY DEPT;
+
+-- (TASK 4)
+SELECT EMP_ID, FIRST_NAME, LAST_NAME, GENDER, DEPT, EMP_RATING,
+    CASE
+       WHEN EMP_RATING < 2 THEN 'LOW'
+       WHEN EMP_RATING < 4 THEN 'AVG'
+       ELSE 'HIGH'
+    END AS RATING_STATUS
+FROM emp_RECORD_TABLE;
+
+
+-- (TASK 5)
+SELECT CONCAT(FIRST_NAME,'',LAST_NAME)AS NAME FROM EMP_RECORD_TABLE
+     WHERE DEPT = 'FINANCE';
+
+     
+-- (TASK 6)
+SELECT M.FIRST_NAME AS MANAGERNAME,COUNT(*)
+     FROM EMP_RECORD_TABLE E JOIN EMP_RECORD_TABLE M
+     ON E.MANAGER_ID = M.EMP_ID
+     GROUP BY MANAGERNAME;
+
+     
+-- (TASK 7)
+SELECT * FROM EMP_RECORD_TABLE WHERE DEPT = 'HEALTHCARE'
+UNION 
+SELECT * FROM EMP_RECORD_TABLE WHERE DEPT = 'FINANCE';     
+
+
+-- (TASK 8)
+SELECT EMP_ID, FIRST_NAME, LAST_NAME, ROLE, DEPT , EMP_RATING,
+	  MAX(EMP_RATING) OVER(PARTITION BY DEPT) AS HIGHEST_RATING
+FROM EMP_RECORD_TABLE;
+
+
+-- (TASK 9)
+SELECT  EMP_ID,FIRST_NAME,LAST_NAME,ROLE,SALARY,
+    MIN(SALARY) OVER(PARTITION BY ROLE) AS MIX_SALARY,
+    MAX(SALARY) OVER(PARTITION BY ROLE)AS MAX_SALARY
+    FROM EMP_RECORD_TABLE;
+    
+    -- OR
+    
+SELECT ROLE, MIN(SALARY) MIN_SALARY,MAX(SALARY) MAX_SALARY
+  FROM EMP_RECORD_TABLE
+  GROUP BY ROLE;
+  
+  
+-- (TASK 10)
+SELECT EMP_ID,FIRST_NAME,SALARY,EXP,
+    RANK()OVER(ORDER BY EXP DESC)AS RK   FROM EMP_RECORD_TABLE;
+   
+   
+-- (TASK 11)
+SELECT EMP_ID,FIRST_NAME,LAST_NAME,COUNTRY,SALARY
+   FROM EMP_RECORD_TABLE WHERE SALARY > 6000
+ORDER BY COUNTRY DESC;
+   
+   
+-- (TASK 12)
+SELECT * FROM EMP_RECORD_TABLE WHERE EMP_ID IN(
+SELECT EMP_ID FROM EMP_RECORD_TABLE WHERE EXP > 10);
+
+
+-- (TASK 13)
+DELIMITER $$
+CREATE PROCEDURE P_EMPSABOVE3YRSEXP ()
+BEGIN
+     SELECT * FROM EMP_RECORD_TABLE WHERE EXP > 3;
+     END $$
+DELIMITER ;
+
+CALL P_EMPSABOVE3YRSEXP;
+
+
+-- (TASK 14)
+DELIMITER $$
+USE `employee`$$
+CREATE FUNCTION Check_Job_Profile (eid  char(4))
+RETURNS varchar(100)
+deterministic
+BEGIN
+	declare ex int;
+    declare r varchar(80);
+    declare vrole varchar(100);
+    declare flag varchar(10);
+    select exp, ROLE into ex, VROLE from data_science_team where emp_ID = eid;
+  
+		if ex > 12 and ex < 16 then
+			if VROLE = 'Manager' then
+				set flag = 'Yes';
+			else
+				set flag = 'No';
+			end if;
+			# set r = 'Manager';
+		elseif ex > 10 and ex <= 12 then 
+			if VROLE = 'LEAD DATA SCIENTIST' then
+				set flag = 'Yes';
+			else
+				set flag = 'No';
+			end if;
+			#set r = 'LEAD DATA SCIENTIST';
+		elseif ex > 5 and ex <=10 then 
+			if VROLE = 'SENIOR DATA SCIENTIST' then
+				set flag = 'Yes';
+			else
+				set flag = 'No';
+			end if;
+			#set r ='SENIOR DATA SCIENTIST';
+		elseif ex > 2 and ex <=5 then
+			if VROLE = 'ASSOCIATE DATA SCIENTIST' then
+				set flag = 'Yes';
+			else
+				set flag = 'No';
+			end if;
+			#set r = 'ASSOCIATE DATA SCIENTIST';
+		elseif ex <= 2 then
+			if VROLE = 'JUNIOR DATA SCIENTIST' then
+				set flag = 'Yes';
+			else
+				set flag = 'No';
+			end if;
+			#set r = 'JUNIOR DATA SCIENTIST';
+		end if;
+RETURN flag;
+
+END$$
+
+DELIMITER ;
+
+select *,Check_Job_Profile(emp_ID) as Status from data_science_team;
+
+
+-- (TASK 15)
+SELECT * FROM emp_record_table WHERE FIRST_NAME = 'ERIC';
+
+CREATE INDEX IDX_EMP_FNAME ON EMP_RECORD_TABLE(FIRST_NAME);
+
+SELECT * FROM emp_record_table WHERE FIRST_NAME = 'ERIC';
+
+
+-- (TASK 16)
+SELECT EMP_ID,FIRST_NAME,SALARY,EMP_RATING,(SALARY*.05) * EMP_RATING BONUS 
+FROM EMP_RECORD_TABLE;
+
+
+-- (TASK 17)
+SELECT CONTINENT, COUNTRY,AVG (SALARY) FROM EMP_RECORD_TABLE
+	GROUP BY CONTINENT, COUNTRY WITH ROLLUP;
+    
+
+-- OR 
+
+SELECT SUM(SALARY) FROM EMP_RECORD_TABLE;
+SELECT DEPT,SUM(SALARY) FROM EMP_RECORD_TABLE GROUP BY DEPT;
+
+-- OR
+
+SELECT DEPT,SUM(SALARY) FROM EMP_RECORD_TABLE GROUP BY DEPT WITH ROLLUP;
+
+-- PROJECT END
